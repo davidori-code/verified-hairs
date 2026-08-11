@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useId, useState } from "react";
+import Link from "next/link";
 
 type AccountType = "BUYER" | "VENDOR";
 
@@ -9,19 +10,15 @@ type FieldErrors = Partial<
 >;
 
 const inputClassName =
-  "block w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-stone-900 shadow-sm transition-colors placeholder:text-stone-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:cursor-not-allowed disabled:bg-stone-50";
+  "block w-full rounded-xl border border-chestnut/15 bg-white px-4 py-3 text-sm text-ink shadow-sm transition-colors placeholder:text-ink/35 focus:border-honey focus:outline-none focus:ring-2 focus:ring-honey/40 disabled:cursor-not-allowed disabled:bg-ivory";
 
-const labelClassName = "mb-1.5 block text-sm font-medium text-stone-700";
+const labelClassName = "mb-1.5 block text-sm font-medium text-ink";
 
-const errorTextClassName = "mt-1.5 text-xs text-rose-600";
+const errorTextClassName = "mt-1.5 text-xs text-red-600";
 
 export function RegisterForm() {
   const formId = useId();
 
-  // Every field is now "controlled" — its value lives in React state, and
-  // the input just displays whatever that state currently holds. This is
-  // what lets us read the values on submit, reset the form on success, and
-  // validate as the user types.
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,8 +37,6 @@ export function RegisterForm() {
     setFormError(null);
     setFieldErrors({});
 
-    // Client-side check that doesn't need the server at all: do the two
-    // password fields match? No point calling the API if they don't.
     if (password !== confirmPassword) {
       setFieldErrors({ confirmPassword: "Passwords do not match" });
       return;
@@ -52,21 +47,12 @@ export function RegisterForm() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          phone,
-          password,
-          role: accountType,
-        }),
+        body: JSON.stringify({ firstName, lastName, email, phone, password, role: accountType }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Our API sends field-specific errors (400) or a single message
-        // (409 conflict, 500 server error) — handle both shapes.
         if (response.status === 400 && data.details) {
           setFieldErrors(data.details);
         } else {
@@ -76,13 +62,6 @@ export function RegisterForm() {
       }
 
       setIsSuccess(true);
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setPhone("");
-      setPassword("");
-      setConfirmPassword("");
-      setAccountType("BUYER");
     } catch {
       setFormError("Network error. Please check your connection and try again.");
     } finally {
@@ -92,276 +71,235 @@ export function RegisterForm() {
 
   if (isSuccess) {
     return (
-      <div
-        role="status"
-        className="rounded-lg border border-rose-200 bg-rose-50 p-6 text-center"
-      >
-        <p className="text-sm font-medium text-stone-900">
-          Account created successfully.
+      <div className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-xl sm:p-10">
+        <h1 className="font-display text-2xl font-semibold text-jet">
+          Account created
+        </h1>
+        <p className="mt-2 text-sm text-ink/60">
+          Check your email to verify your account, then sign in to get started.
         </p>
-        <p className="mt-1 text-sm text-stone-500">
-          You can now sign in with your new account.
-        </p>
+        <Link
+          href="/login"
+          className="mt-6 inline-block rounded-full bg-jet px-6 py-3 text-sm font-semibold text-ivory transition-colors hover:bg-chestnut"
+        >
+          Go to Login
+        </Link>
       </div>
     );
   }
 
   return (
-    <form
-      id={formId}
-      onSubmit={handleSubmit}
-      noValidate
-      className="space-y-5"
-      aria-labelledby={`${formId}-heading`}
-    >
-      <h2 id={`${formId}-heading`} className="sr-only">
-        Registration form
-      </h2>
+    <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-xl sm:p-10">
+      <h1 className="font-display text-2xl font-semibold text-jet">
+        Create your account
+      </h1>
+      <p className="mt-2 text-sm text-ink/60">
+        Join the trusted marketplace for verified hair products.
+      </p>
 
-      {formError && (
-        <div
-          role="alert"
-          className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
-        >
-          {formError}
-        </div>
-      )}
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label htmlFor={`${formId}-firstName`} className={labelClassName}>
-            First Name
-          </label>
-          <input
-            id={`${formId}-firstName`}
-            name="firstName"
-            type="text"
-            autoComplete="given-name"
-            required
-            aria-required="true"
-            aria-invalid={!!fieldErrors.firstName}
-            aria-describedby={fieldErrors.firstName ? `${formId}-firstName-error` : undefined}
-            placeholder="Jane"
-            className={inputClassName}
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            disabled={isSubmitting}
-          />
-          {fieldErrors.firstName && (
-            <p id={`${formId}-firstName-error`} className={errorTextClassName}>
-              {fieldErrors.firstName}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor={`${formId}-lastName`} className={labelClassName}>
-            Last Name
-          </label>
-          <input
-            id={`${formId}-lastName`}
-            name="lastName"
-            type="text"
-            autoComplete="family-name"
-            required
-            aria-required="true"
-            aria-invalid={!!fieldErrors.lastName}
-            aria-describedby={fieldErrors.lastName ? `${formId}-lastName-error` : undefined}
-            placeholder="Doe"
-            className={inputClassName}
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            disabled={isSubmitting}
-          />
-          {fieldErrors.lastName && (
-            <p id={`${formId}-lastName-error`} className={errorTextClassName}>
-              {fieldErrors.lastName}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor={`${formId}-email`} className={labelClassName}>
-          Email Address
-        </label>
-        <input
-          id={`${formId}-email`}
-          name="email"
-          type="email"
-          autoComplete="email"
-          inputMode="email"
-          required
-          aria-required="true"
-          aria-invalid={!!fieldErrors.email}
-          aria-describedby={fieldErrors.email ? `${formId}-email-error` : undefined}
-          placeholder="you@example.com"
-          className={inputClassName}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={isSubmitting}
-        />
-        {fieldErrors.email && (
-          <p id={`${formId}-email-error`} className={errorTextClassName}>
-            {fieldErrors.email}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor={`${formId}-phone`} className={labelClassName}>
-          Phone Number
-        </label>
-        <input
-          id={`${formId}-phone`}
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          inputMode="tel"
-          required
-          aria-required="true"
-          aria-invalid={!!fieldErrors.phone}
-          aria-describedby={fieldErrors.phone ? `${formId}-phone-error` : `${formId}-phone-hint`}
-          placeholder="+15550000000"
-          className={inputClassName}
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          disabled={isSubmitting}
-        />
-        {!fieldErrors.phone && (
-          <p id={`${formId}-phone-hint`} className="mt-1.5 text-xs text-stone-500">
-            Include the country code, e.g. +15550000000
-          </p>
-        )}
-        {fieldErrors.phone && (
-          <p id={`${formId}-phone-error`} className={errorTextClassName}>
-            {fieldErrors.phone}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor={`${formId}-password`} className={labelClassName}>
-          Password
-        </label>
-        <input
-          id={`${formId}-password`}
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          aria-required="true"
-          aria-invalid={!!fieldErrors.password}
-          aria-describedby={fieldErrors.password ? `${formId}-password-error` : undefined}
-          placeholder="Create a strong password"
-          className={inputClassName}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={isSubmitting}
-        />
-        {fieldErrors.password && (
-          <p id={`${formId}-password-error`} className={errorTextClassName}>
-            {fieldErrors.password}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor={`${formId}-confirmPassword`} className={labelClassName}>
-          Confirm Password
-        </label>
-        <input
-          id={`${formId}-confirmPassword`}
-          name="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          required
-          aria-required="true"
-          aria-invalid={!!fieldErrors.confirmPassword}
-          aria-describedby={
-            fieldErrors.confirmPassword ? `${formId}-confirmPassword-error` : undefined
-          }
-          placeholder="Re-enter your password"
-          className={inputClassName}
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          disabled={isSubmitting}
-        />
-        {fieldErrors.confirmPassword && (
-          <p id={`${formId}-confirmPassword-error`} className={errorTextClassName}>
-            {fieldErrors.confirmPassword}
-          </p>
-        )}
-      </div>
-
-      <fieldset>
-        <legend className={labelClassName}>Account Type</legend>
-        <div className="mt-1 grid gap-3 sm:grid-cols-2">
-          <label
-            htmlFor={`${formId}-buyer`}
-            className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
-              accountType === "BUYER"
-                ? "border-rose-500 bg-rose-50 ring-2 ring-rose-500/20"
-                : "border-stone-200 bg-white hover:border-stone-300"
-            }`}
-          >
-            <input
-              id={`${formId}-buyer`}
-              name="accountType"
-              type="radio"
-              value="BUYER"
-              checked={accountType === "BUYER"}
-              onChange={() => setAccountType("BUYER")}
-              disabled={isSubmitting}
-              className="mt-0.5 size-4 shrink-0 border-stone-300 text-rose-600 focus:ring-rose-500"
-            />
-            <span>
-              <span className="block text-sm font-medium text-stone-900">
-                Buyer
-              </span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-stone-500">
-                Browse and purchase verified hair products.
-              </span>
-            </span>
-          </label>
-
-          <label
-            htmlFor={`${formId}-vendor`}
-            className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
-              accountType === "VENDOR"
-                ? "border-rose-500 bg-rose-50 ring-2 ring-rose-500/20"
-                : "border-stone-200 bg-white hover:border-stone-300"
-            }`}
-          >
-            <input
-              id={`${formId}-vendor`}
-              name="accountType"
-              type="radio"
-              value="VENDOR"
-              checked={accountType === "VENDOR"}
-              onChange={() => setAccountType("VENDOR")}
-              disabled={isSubmitting}
-              className="mt-0.5 size-4 shrink-0 border-stone-300 text-rose-600 focus:ring-rose-500"
-            />
-            <span>
-              <span className="block text-sm font-medium text-stone-900">
-                Vendor
-              </span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-stone-500">
-                List and sell your hair products on the marketplace.
-              </span>
-            </span>
-          </label>
-        </div>
-      </fieldset>
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full rounded-lg bg-rose-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 active:bg-rose-900 disabled:cursor-not-allowed disabled:bg-stone-300"
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        noValidate
+        className="mt-6 space-y-4"
+        aria-labelledby={`${formId}-heading`}
       >
-        {isSubmitting ? "Creating account..." : "Register"}
-      </button>
-    </form>
+        <h2 id={`${formId}-heading`} className="sr-only">
+          Registration form
+        </h2>
+
+        {formError && (
+          <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {formError}
+          </div>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor={`${formId}-firstName`} className={labelClassName}>
+              First Name
+            </label>
+            <input
+              id={`${formId}-firstName`}
+              name="firstName"
+              type="text"
+              autoComplete="given-name"
+              required
+              aria-required="true"
+              aria-invalid={!!fieldErrors.firstName}
+              placeholder="Jennifer"
+              className={inputClassName}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              disabled={isSubmitting}
+            />
+            {fieldErrors.firstName && <p className={errorTextClassName}>{fieldErrors.firstName}</p>}
+          </div>
+
+          <div>
+            <label htmlFor={`${formId}-lastName`} className={labelClassName}>
+              Last Name
+            </label>
+            <input
+              id={`${formId}-lastName`}
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+              required
+              aria-required="true"
+              aria-invalid={!!fieldErrors.lastName}
+              placeholder="Daniels"
+              className={inputClassName}
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              disabled={isSubmitting}
+            />
+            {fieldErrors.lastName && <p className={errorTextClassName}>{fieldErrors.lastName}</p>}
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor={`${formId}-email`} className={labelClassName}>
+            Email Address
+          </label>
+          <input
+            id={`${formId}-email`}
+            name="email"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            required
+            aria-required="true"
+            aria-invalid={!!fieldErrors.email}
+            placeholder="you@example.com"
+            className={inputClassName}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isSubmitting}
+          />
+          {fieldErrors.email && <p className={errorTextClassName}>{fieldErrors.email}</p>}
+        </div>
+
+        <div>
+          <label htmlFor={`${formId}-phone`} className={labelClassName}>
+            Phone Number
+          </label>
+          <input
+            id={`${formId}-phone`}
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
+            required
+            aria-required="true"
+            aria-invalid={!!fieldErrors.phone}
+            placeholder="+2348100000000"
+            className={inputClassName}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            disabled={isSubmitting}
+          />
+          {!fieldErrors.phone && (
+            <p className="mt-1.5 text-xs text-ink/45">Include the country code, e.g. +2348000000000</p>
+          )}
+          {fieldErrors.phone && <p className={errorTextClassName}>{fieldErrors.phone}</p>}
+        </div>
+
+        <div>
+          <label htmlFor={`${formId}-password`} className={labelClassName}>
+            Password
+          </label>
+          <input
+            id={`${formId}-password`}
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            aria-required="true"
+            aria-invalid={!!fieldErrors.password}
+            placeholder="Create a strong password"
+            className={inputClassName}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isSubmitting}
+          />
+          {fieldErrors.password && <p className={errorTextClassName}>{fieldErrors.password}</p>}
+        </div>
+
+        <div>
+          <label htmlFor={`${formId}-confirmPassword`} className={labelClassName}>
+            Confirm Password
+          </label>
+          <input
+            id={`${formId}-confirmPassword`}
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            required
+            aria-required="true"
+            aria-invalid={!!fieldErrors.confirmPassword}
+            placeholder="Re-enter your password"
+            className={inputClassName}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isSubmitting}
+          />
+          {fieldErrors.confirmPassword && <p className={errorTextClassName}>{fieldErrors.confirmPassword}</p>}
+        </div>
+
+        <fieldset>
+          <legend className={labelClassName}>Account Type</legend>
+          <div className="mt-1 grid gap-3 sm:grid-cols-2">
+            {(["BUYER", "VENDOR"] as const).map((type) => (
+              <label
+                key={type}
+                htmlFor={`${formId}-${type}`}
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
+                  accountType === type
+                    ? "border-honey bg-honey-light/40 ring-2 ring-honey/30"
+                    : "border-chestnut/15 bg-white hover:border-chestnut/30"
+                }`}
+              >
+                <input
+                  id={`${formId}-${type}`}
+                  name="accountType"
+                  type="radio"
+                  value={type}
+                  checked={accountType === type}
+                  onChange={() => setAccountType(type)}
+                  disabled={isSubmitting}
+                  className="mt-0.5 size-4 shrink-0 border-chestnut/30 text-honey focus:ring-honey"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-jet">
+                    {type === "BUYER" ? "Buyer" : "Vendor"}
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-ink/50">
+                    {type === "BUYER"
+                      ? "Browse and purchase verified hair products."
+                      : "List and sell your hair products on the marketplace."}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-full bg-jet py-3.5 text-sm font-semibold text-ivory shadow-sm transition-colors hover:bg-chestnut disabled:cursor-not-allowed disabled:bg-stone-300"
+        >
+          {isSubmitting ? "Creating account..." : "Register"}
+        </button>
+
+        <p className="text-center text-sm text-ink/60">
+          Already have an account?{" "}
+          <Link href="/login" className="font-medium text-honey-dark hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </form>
+    </div>
   );
 }

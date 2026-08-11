@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -19,6 +17,19 @@ enum Role {
   ADMIN
 }
 
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
 model User {
   id           String   @id @default(cuid())
   firstName    String
@@ -32,6 +43,215 @@ model User {
   isVerified   Boolean  @default(false)
   status       Boolean  @default(true)
 
+  // Set once, the first time a vendor accepts the Vendor Terms &
+  // Conditions — not tied to any specific verification attempt, since
+  // re-accepting on every resubmission would be unnecessary friction.
+  vendorTermsAcceptedAt DateTime?
+
+  // Deliberately a SEPARATE field from isVerified above. isVerified means
+  // "this vendor's business has been approved by an admin" — a totally
+  // different concept from "this person's email address is real", which
+  // applies to buyers and vendors alike. Reusing one field for both would
+  // make it ambiguous which kind of "verified" is meant.
+  emailVerified            Boolean   @default(false)
+  emailVerificationToken   String?   @unique
+  emailVerificationExpires DateTime?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  vendorVerification VendorVerification?
+  products           Product[]
+  cart               Cart?
+  orders             Order[]
+  reviews            Review[]
+  favorites          Favorite[]
+}
+
+model VendorVerification {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  businessName    String
+  businessAddress String
+  documentUrl     String
+
+  status          VerificationStatus @default(PENDING)
+  rejectionReason String?
+
+  submittedAt DateTime  @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
+
+  @@index([status])
+}
+
+model Product {
+  id     String @id @default(cuid())
+  vendorId String
+  vendor   User   @relation(fields: [vendorId], references: [id])
+
+  name        String
+  description String
+
+  // Stored as the smallest currency unit (e.g. kobo, not Naira) to avoid
+  // floating-point rounding errors with money. Divide by 100 when
+  // displaying, multiply by 100 when saving a value entered as "naira.kobo".
+  priceInSmallestUnit Int
+
+  // Optional "original" price, set by the vendor when a product is on
+  // sale. When present and higher than priceInSmallestUnit, the product
+  // shows a genuine discount badge and a struck-through original price —
+  // this is what makes "Discount Sale" a real, data-driven label instead
+  // of a decorative one.
+  compareAtPriceInSmallestUnit Int?
+
+  images String[] // up to 5 URLs, enforced in the API route, not the DB
+  tags   String[] // free-text tags, e.g. ["wig", "human hair", "curly"]
+
+  stockQuantity Int     @default(0)
+  isActive      Boolean @default(true) // lets a vendor hide a listing without deleting it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([isActive])
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  reviews    Review[]
+  favorites  Favorite[]
+}
+
+model Favorite {
+  id String @id @default(cuid())
+
+  buyerId String
+  buyer   User   @relation(fields: [buyerId], references: [id])
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // A buyer can only favorite the same product once — clicking the heart
+  // again removes it rather than creating a duplicate row.
+  @@unique([buyerId, productId])
+}
+
+model Cart {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  items CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CartItem {
+  id     String @id @default(cuid())
+  cartId String
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  quantity Int      @default(1)
+  addedAt  DateTime @default(now())
+
+  // One row per product per cart — adding the same product again increases
+  // this row's quantity instead of creating a duplicate row.
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id     String @id @default(cuid())
+  buyerId String
+  buyer   User   @relation(fields: [buyerId], references: [id])
+
+  status OrderStatus @default(PENDING)
+
+  // Snapshot of the order's grand total at checkout time — the sum of
+  // each OrderItem's (quantity * priceAtPurchase). Stored directly rather
+  // than recalculated on every read, since it must never change even if
+  // product prices change later.
+  totalInSmallestUnit Int
+
+  deliveryAddress String
+  deliveryPhone   String
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([buyerId])
+  @@index([status])
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  // Denormalized on purpose: lets a vendor query "all order items that
+  // belong to me" directly, without joining through Product every time —
+  // and it stays correct even if a product's vendor ever changed later.
+  vendorId String
+
+  // Snapshots taken AT THE MOMENT OF PURCHASE. These deliberately do NOT
+  // update if the vendor later edits the product's name or price — an
+  // order is a historical record of what was actually bought and paid
+  // for, not a live view of the current listing.
+  productNameAtPurchase String
+  priceAtPurchase       Int
+  quantity              Int
+
+  // Tracked per ITEM, not per order, because one order can contain
+  // products from multiple different vendors — each vendor fulfills and
+  // updates only their own items, independently of the others.
+  status OrderStatus @default(PENDING)
+
+  // Separate from `status` on purpose: the VENDOR says "DELIVERED", but
+  // that's a claim, not confirmation. `receivedByBuyer` is the BUYER's own
+  // acknowledgement that they actually got it — and reviewing is gated on
+  // this, not on the vendor's claim alone.
+  receivedByBuyer Boolean   @default(false)
+  receivedAt      DateTime?
+
+  review Review?
+
+  @@index([orderId])
+  @@index([vendorId])
+}
+
+model Review {
+  id String @id @default(cuid())
+
+  // One review per PURCHASE (order item), not just "per product" — this
+  // is what makes it a genuine verified-purchase review, and the @unique
+  // constraint makes it structurally impossible to leave two reviews for
+  // the same delivery.
+  orderItemId String    @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  buyerId String
+  buyer   User   @relation(fields: [buyerId], references: [id])
+
+  rating  Int // 1–5
+  comment String
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
 }

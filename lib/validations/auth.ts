@@ -47,3 +47,19 @@ export const registerSchema = z.object({
 // Single source of truth: the TypeScript type is inferred from the schema,
 // so validation rules and types can never drift out of sync with each other.
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+/**
+ * Login intentionally does NOT reuse the registration password rules
+ * (uppercase/lowercase/number/length). Those rules exist to enforce a
+ * strong password at signup — but if we ever loosen or change those rules
+ * later, existing users' older passwords must still be able to log in.
+ * Login only needs to confirm "is this field non-empty", since the real
+ * check happens against the stored hash, not against these rules.
+ */
+export const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional().default(false),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;

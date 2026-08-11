@@ -1,26 +1,51 @@
+@import "@uploadthing/react/styles.css";
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FAF7F2;
+  --foreground: #2A2420;
+  color-scheme: light;
+
+  /* ---- Verified Hairs design tokens ----
+     Grounded in real hair pigment tones. Used sparingly and consistently —
+     Ivory carries most of the surface area for a bright, warm feel; Jet is
+     reserved for text and the footer; Honey is the one accent color used
+     for calls to action, badges, and highlights. */
+  --color-jet: #1C1512;      /* near-black — text, footer, dark accents */
+  --color-chestnut: #6B3B2A; /* secondary accent, borders, hover states */
+  --color-honey: #D4A24C;    /* primary accent — CTAs, active states, badges */
+  --color-honey-dark: #B8863A; /* honey hover/pressed state */
+  --color-honey-light: #F3E2C0; /* soft honey tint for warm section backgrounds */
+  --color-ivory: #FAF7F2;    /* page background, warm off-white */
+  --color-ink: #2A2420;      /* body text */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-jet: var(--color-jet);
+  --color-chestnut: var(--color-chestnut);
+  --color-honey: var(--color-honey);
+  --color-honey-dark: var(--color-honey-dark);
+  --color-honey-light: var(--color-honey-light);
+  --color-ivory: var(--color-ivory);
+  --color-ink: var(--color-ink);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-fraunces);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Prices use tabular numerals so digits align cleanly wherever they
+   appear (cards, tables, receipts) — a small detail that reads as
+   deliberate and serious rather than decorative. */
+.price {
+  font-variant-numeric: tabular-nums;
 }

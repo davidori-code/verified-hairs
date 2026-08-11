@@ -1,0 +1,58 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+interface UserStatusToggleProps {
+  userId: string;
+  status: boolean;
+}
+
+export function UserStatusToggle({ userId, status }: UserStatusToggleProps) {
+  const router = useRouter();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleToggle() {
+    setError(null);
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: !status }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error ?? "Could not update user.");
+        return;
+      }
+
+      router.refresh();
+    } catch {
+      setError("Network error.");
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  return (
+    <div>
+      {error && <p className="mb-1 text-xs text-red-600">{error}</p>}
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={isUpdating}
+        className={`rounded-xl border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+          status
+            ? "border-red-300 text-red-700 hover:bg-red-50"
+            : "border-green-300 text-green-700 hover:bg-green-50"
+        }`}
+      >
+        {isUpdating ? "Updating..." : status ? "Suspend" : "Reactivate"}
+      </button>
+    </div>
+  );
+}
