@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   }
 
   const token = rememberMe
-    ? signSessionToken({ userId: user.id, role: user.role }, "30d")
+    ? signSessionToken({ userId: user.id, role: user.role }, 1000 * 60 * 60 * 24 * 30)
     : signSessionToken({ userId: user.id, role: user.role });
 
   const cookieStore = await cookies();

@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import type { Role } from "@/app/generated/prisma/client";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -16,7 +16,7 @@ export interface SessionPayload {
   role: Role;
 }
 
-export function signSessionToken(payload: SessionPayload, expiresIn: string = "1d"): string {
+export function signSessionToken(payload: SessionPayload, expiresIn: number = 1000*60*60*24): string {
   // expiresIn is a backstop, independent of the cookie's own lifetime.
   // Even if a browser keeps the cookie around longer than a real "session"
   // (some browsers restore cookies on reopen), the token itself stops being
@@ -24,7 +24,7 @@ export function signSessionToken(payload: SessionPayload, expiresIn: string = "1
   // "Remember me" passes a longer window here (see the login route) —
   // otherwise the default 1-day backstop would silently log someone out
   // well before the "remembered" cookie itself expires.
-  return jwt.sign(payload, JWT_SECRET as string, { expiresIn });
+  return jwt.sign(payload, JWT_SECRET as string, {expiresIn}); // 1 day
 }
 
 export function verifySessionToken(token: string): SessionPayload | null {
