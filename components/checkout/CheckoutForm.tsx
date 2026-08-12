@@ -3,8 +3,6 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
 const inputClassName =
   "block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-jet shadow-sm placeholder:text-ink/40 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 disabled:cursor-not-allowed disabled:bg-ivory";
 
@@ -16,6 +14,7 @@ export function CheckoutForm() {
   const [deliveryPhone, setDeliveryPhone] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
