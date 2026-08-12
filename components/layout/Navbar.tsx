@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
-import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 import { SearchBar } from "@/components/layout/SearchBar";
 import { HamburgerMenu } from "@/components/layout/HamburgerMenu";
 import { AccountMenu } from "@/components/layout/AccountMenu";
@@ -27,6 +26,14 @@ export async function Navbar() {
           🚴 Dispatch Services — Coming Soon
         </span>
 
+        {/* Centralized search — same search that lives on /products, now
+            reachable from anywhere. flex-basis-full makes it wrap onto
+            its own row on narrow screens instead of disappearing, so it
+            stays usable on mobile too. */}
+        <div className="order-3 w-full flex-1 sm:order-none sm:w-auto sm:max-w-md">
+          <SearchBar size="compact" />
+        </div>
+
         <div className="ml-auto flex shrink-0 items-center gap-3">
           {showBecomeVendor && (
             <Link
@@ -46,7 +53,6 @@ export async function Navbar() {
         </div>
       </nav>
 
-      {user && !user.emailVerified && <EmailVerificationBanner />}
     </header>
   );
 }

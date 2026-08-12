@@ -2,19 +2,30 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface AddToCartButtonProps {
   productId: string;
   stockQuantity: number;
+  isLoggedIn: boolean;
 }
 
-export function AddToCartButton({ productId, stockQuantity }: AddToCartButtonProps) {
+export function AddToCartButton({ productId, stockQuantity, isLoggedIn }: AddToCartButtonProps) {
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
 
   async function handleAddToCart() {
+    // A guest has no account to add anything to — send them to create one
+    // instead of letting the request hit the server and come back with a
+    // raw "Unauthorized" message that doesn't tell them what to do next.
+    if (!isLoggedIn) {
+      router.push("/register");
+      return;
+    }
+
     setError(null);
     setAdded(false);
     setIsSubmitting(true);
@@ -46,7 +57,7 @@ export function AddToCartButton({ productId, stockQuantity }: AddToCartButtonPro
       <button
         type="button"
         disabled
-        className="mt-4 w-full cursor-not-allowed rounded-xl bg-stone-300 px-4 py-3 text-sm font-semibold text-ivory0"
+        className="mt-4 w-full cursor-not-allowed rounded-xl bg-stone-300 px-4 py-3 text-sm font-semibold text-ivory"
       >
         Out of Stock
       </button>
@@ -79,7 +90,7 @@ export function AddToCartButton({ productId, stockQuantity }: AddToCartButtonPro
           value={quantity}
           onChange={(e) => setQuantity(Number(e.target.value))}
           disabled={isSubmitting}
-          className="rounded-xl border border-stone-300 px-2 py-1.5 text-sm"
+          className="rounded-xl border border-chestnut/20 px-2 py-1.5 text-sm"
         >
           {Array.from({ length: Math.min(stockQuantity, 10) }, (_, i) => i + 1).map(
             (n) => (

@@ -141,6 +141,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <AddToCartButton
             productId={product.id}
             stockQuantity={product.stockQuantity}
+            isLoggedIn={!!user}
           />
         </div>
       </div>

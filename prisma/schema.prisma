@@ -53,7 +53,7 @@ model User {
   // different concept from "this person's email address is real", which
   // applies to buyers and vendors alike. Reusing one field for both would
   // make it ambiguous which kind of "verified" is meant.
-  emailVerified            Boolean   @default(false)
+  emailVerified            Boolean   @default(true)
   emailVerificationToken   String?   @unique
   emailVerificationExpires DateTime?
 
