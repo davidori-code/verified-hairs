@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
-import { SearchBar } from "@/components/layout/SearchBar";
 import { HamburgerMenu } from "@/components/layout/HamburgerMenu";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 
@@ -13,34 +12,30 @@ export async function Navbar() {
 
   return (
     <header className="border-b border-chestnut/10 bg-ivory">
-      <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 p-4">
+      <nav className="mx-auto flex max-w-6xl items-center gap-2 p-3 sm:gap-3 sm:p-4">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2 font-display text-lg font-semibold text-jet"
+          className="flex shrink-0 items-center gap-1.5 font-display text-base font-semibold text-jet sm:gap-2 sm:text-lg"
         >
-          <span className="inline-block h-2 w-2 rounded-full bg-honey" />
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-honey sm:h-2 sm:w-2" />
           Verified Hairs
         </Link>
 
-        <span className="hidden shrink-0 rounded-full bg-honey-light px-3 py-1 text-[11px] font-semibold text-chestnut sm:inline-block">
+        <span className="hidden shrink-0 rounded-full bg-honey-light px-3 py-1 text-[11px] font-semibold text-chestnut lg:inline-block">
           🚴 Dispatch Services — Coming Soon
         </span>
 
-        {/* Centralized search — same search that lives on /products, now
-            reachable from anywhere. flex-basis-full makes it wrap onto
-            its own row on narrow screens instead of disappearing, so it
-            stays usable on mobile too. */}
-        <div className="order-3 w-full flex-1 sm:order-none sm:w-auto sm:max-w-md">
-          <SearchBar size="compact" />
-        </div>
-
-        <div className="ml-auto flex shrink-0 items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-3">
           {showBecomeVendor && (
             <Link
               href="/register"
-              className="rounded-full bg-jet px-4 py-2 text-sm font-medium text-ivory transition-colors hover:bg-chestnut"
+              className="rounded-full bg-jet px-2.5 py-1.5 text-xs font-medium text-ivory transition-colors hover:bg-chestnut sm:px-4 sm:py-2 sm:text-sm"
             >
-              Become a Vendor
+              {/* Shorter label on narrow screens so this button, the logo,
+                  and both icon buttons can all fit on a single line without
+                  wrapping. */}
+              <span className="sm:hidden">Sell</span>
+              <span className="hidden sm:inline">Become a Vendor</span>
             </Link>
           )}
 
@@ -52,7 +47,6 @@ export async function Navbar() {
           />
         </div>
       </nav>
-
     </header>
   );
 }

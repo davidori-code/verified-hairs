@@ -21,9 +21,9 @@ export function HamburgerMenu({ isLoggedIn }: HamburgerMenuProps) {
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Menu"
         aria-expanded={isOpen}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-chestnut/15 text-ink transition-colors hover:bg-ivory"
+        className="flex h-7 w-7 items-center justify-center rounded-full border border-chestnut/15 text-ink transition-colors hover:bg-ivory sm:h-8 sm:w-8"
       >
-        <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={2}>
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
           <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
         </svg>
       </button>

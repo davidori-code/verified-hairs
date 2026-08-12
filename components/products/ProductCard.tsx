@@ -73,30 +73,35 @@ export function ProductCard({
             <img
               src={images[0]}
               alt={name}
-              className="h-48 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="h-36 w-full object-cover transition-transform duration-300 group-hover:scale-105 sm:h-48"
             />
           ) : (
-            <div className="flex h-48 w-full items-center justify-center bg-ivory text-xs text-ink/40">
+            <div className="flex h-36 w-full items-center justify-center bg-ivory text-xs text-ink/40 sm:h-48">
               No image
             </div>
           )}
         </div>
 
-        <div className="p-4">
-          <h3 className="text-sm font-semibold text-jet">{name}</h3>
+        <div className="p-3 sm:p-4">
+          <h3 className="line-clamp-1 text-sm font-semibold text-jet">{name}</h3>
 
-          <div className="mt-1 flex items-center gap-1.5 text-xs text-ink/50">
-            {businessName && <span>{businessName}</span>}
+          {/* flex-wrap here (and min-w-0 on the location span) is what
+              stops the vendor name/location from being sliced off by the
+              card's rounded corners on narrow screens — without it, flex
+              children refuse to shrink below their natural text width and
+              silently overflow instead of wrapping. */}
+          <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-ink/50 sm:text-xs">
+            {businessName && <span className="truncate">{businessName}</span>}
             {businessName && vendorLocation && <span>·</span>}
             {vendorLocation && (
-              <span className="truncate" title={vendorLocation}>
+              <span className="min-w-0 truncate" title={vendorLocation}>
                 {vendorLocation}
               </span>
             )}
           </div>
 
           {averageRating !== null && averageRating !== undefined && (
-            <div className="mt-1 flex items-center gap-1 text-xs text-ink/60">
+            <div className="mt-1 flex items-center gap-1 text-[11px] text-ink/60 sm:text-xs">
               <span className="text-honey-dark">★</span>
               <span>{averageRating.toFixed(1)}</span>
               <span className="text-ink/40">({reviewCount})</span>
@@ -104,24 +109,27 @@ export function ProductCard({
           )}
 
           {tag && (
-            <span className="mt-1.5 inline-block rounded-full bg-ivory px-2 py-0.5 text-[11px] text-ink/60">
+            <span className="mt-1.5 inline-block rounded-full bg-ivory px-2 py-0.5 text-[10px] text-ink/60 sm:text-[11px]">
               {tag}
             </span>
           )}
 
-          <div className="mt-2 flex items-baseline gap-2">
-            <p className="price text-base font-bold text-jet">
+          {/* flex-wrap is the actual fix for the cut-off original price —
+              on a narrow card, the struck-through price now drops to its
+              own line instead of being clipped by overflow-hidden. */}
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p className="price text-sm font-bold text-jet sm:text-base">
               {formatNaira(priceInSmallestUnit)}
             </p>
             {compareAtPriceInSmallestUnit &&
               compareAtPriceInSmallestUnit > priceInSmallestUnit && (
-                <p className="price text-xs text-ink/40 line-through">
+                <p className="price text-[11px] text-ink/40 line-through sm:text-xs">
                   {formatNaira(compareAtPriceInSmallestUnit)}
                 </p>
               )}
           </div>
 
-          <p className="mt-1 text-xs text-ink/50">
+          <p className="mt-1 text-[11px] text-ink/50 sm:text-xs">
             {stockQuantity > 0
               ? `${stockQuantity} unit${stockQuantity === 1 ? "" : "s"} left`
               : "Out of stock"}

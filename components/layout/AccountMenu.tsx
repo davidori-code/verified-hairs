@@ -48,9 +48,9 @@ export function AccountMenu({ isLoggedIn, role, isVerified }: AccountMenuProps) 
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Account"
         aria-expanded={isOpen}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-chestnut/15 text-ink transition-colors hover:bg-ivory"
+        className="flex h-7 w-7 items-center justify-center rounded-full border border-chestnut/15 text-ink transition-colors hover:bg-ivory sm:h-8 sm:w-8"
       >
-        <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={2}>
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
           <circle cx="12" cy="8" r="3.5" />
           <path d="M4.5 20c1.5-4 5-6 7.5-6s6 2 7.5 6" strokeLinecap="round" />
         </svg>
