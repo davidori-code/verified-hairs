@@ -33,7 +33,9 @@ export default async function DashboardPage() {
           </div>
           <div className="flex justify-between border-b border-chestnut/10 pb-2">
             <dt className="text-ink/50">Account verified</dt>
-            <dd className="text-ink">{user.isVerified ? "Yes" : "No"}</dd>
+            <dd className="text-ink">
+              {user.role === "BUYER" ? "Verified" : user.isVerified ? "Yes" : "No"}
+            </dd>
           </div>
         </dl>
 

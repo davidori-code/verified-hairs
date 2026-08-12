@@ -3,6 +3,8 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
 const inputClassName =
   "block w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-sm text-jet shadow-sm placeholder:text-ink/40 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 disabled:cursor-not-allowed disabled:bg-ivory";
 
@@ -18,6 +20,7 @@ export function CheckoutForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
@@ -30,7 +33,11 @@ export function CheckoutForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setFormError(data.error ?? "Checkout failed. Please try again.");
+        if (response.status === 400 && data.details) {
+          setFieldErrors(data.details);
+        } else {
+          setFormError(data.error ?? "Checkout failed. Please try again.");
+        }
         return;
       }
 
@@ -67,6 +74,9 @@ export function CheckoutForm() {
           onChange={(e) => setDeliveryAddress(e.target.value)}
           disabled={isSubmitting}
         />
+        {fieldErrors.deliveryAddress && (
+          <p className="mt-1.5 text-xs text-red-600">{fieldErrors.deliveryAddress}</p>
+        )}
       </div>
 
       <div>
@@ -83,6 +93,9 @@ export function CheckoutForm() {
           onChange={(e) => setDeliveryPhone(e.target.value)}
           disabled={isSubmitting}
         />
+        {fieldErrors.deliveryPhone && (
+          <p className="mt-1.5 text-xs text-red-600">{fieldErrors.deliveryPhone}</p>
+        )}
       </div>
 
       <button
